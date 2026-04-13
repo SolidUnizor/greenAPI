@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GREEN-API Test Task</title>
-    <!-- stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,67 +12,42 @@
             <h1>GREEN-API Integration Test</h1>
         </header>
 
-        <!-- 1. Connection Parameters -->
-        <section class="config-panel">
-            <label for="idInstance">idInstance</label>
-            <input type="text" id="idInstance" placeholder="e.g., 1101000001">
+        <div class="main-layout">
+            <!-- LEFT COLUMN: All Inputs & Buttons -->
+            <section class="left-panel">
+                <!-- Connection Parameters -->
+                <input type="text" id="idInstance" placeholder="idInstance">
+                <input type="text" id="apiTokenInstance" placeholder="ApiTokenInstance">
 
-            <label for="apiTokenInstance">apiTokenInstance</label>
-            <input type="text" id="apiTokenInstance" placeholder="e.g., d1a2b3c4d5e6...">
-        </section>
+                <!-- getSettings Button -->
+                <button id="btn-getSettings" class="btn-primary">getSettings</button>
 
-        <!-- getSettings -->
-        <section class="method-card">
-            <div class="method-header">
-                <h3>getSettings</h3>
-                <button id="btn-getSettings" class="btn-primary">Call</button>
-            </div>
-            <textarea id="res-getSettings" readonly placeholder="Response will appear here..."></textarea>
-        </section>
+                <!-- getStateInstance Button -->
+                <button id="btn-getStateInstance" class="btn-primary">getStateInstance</button>
 
-        <!-- getStateInstance -->
-        <section class="method-card">
-            <div class="method-header">
-                <h3>getStateInstance</h3>
-                <button id="btn-getStateInstance" class="btn-primary">Call</button>
-            </div>
-            <textarea id="res-getStateInstance" readonly placeholder="Response will appear here..."></textarea>
-        </section>
+                <!-- sendMessage Section -->
+                <input type="text" id="send-chatId" placeholder="77771234567">
+                <textarea id="send-message" placeholder="Hello World!"></textarea>
+                <button id="btn-sendMessage" class="btn-primary">sendMessage</button>
 
-        <!-- sendMessage -->
-        <section class="method-card">
-            <div class="method-header">
-                <h3>sendMessage</h3>
-                <button id="btn-sendMessage" class="btn-primary">Call</button>
-            </div>
-            <div class="input-group">
-                <input type="text" id="send-chatId" placeholder="Chat ID (e.g., 79991234567@c.us)">
-                <input type="text" id="send-message" placeholder="Message text">
-            </div>
-            <textarea id="res-sendMessage" readonly placeholder="Response will appear here..."></textarea>
-        </section>
+                <!-- sendFileByUrl Section -->
+                <input type="text" id="file-chatId" placeholder="77771234567">
+                <input type="text" id="file-url" placeholder="https://my.site.com/img/horse.png">
+                <button id="btn-sendFileByUrl" class="btn-primary">sendFileByUrl</button>
+            </section>
 
-        <!-- sendFileByUrl -->
-        <section class="method-card">
-            <div class="method-header">
-                <h3>sendFileByUrl</h3>
-                <button id="btn-sendFileByUrl" class="btn-primary">Call</button>
-            </div>
-            <div class="input-group">
-                <input type="text" id="file-chatId" placeholder="Chat ID">
-                <input type="text" id="file-url" placeholder="Direct file URL" value="https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png">
-                <input type="text" id="file-name" placeholder="Filename (e.g., image.png)">
-                <input type="text" id="file-caption" placeholder="Caption (optional)">
-            </div>
-            <textarea id="res-sendFileByUrl" readonly placeholder="Response will appear here..."></textarea>
-        </section>
+            <!-- RIGHT COLUMN: Single Large Response Area -->
+            <section class="right-panel">
+                <label>Ответ:</label>
+                <textarea id="response-output" readonly placeholder="Response will appear here..."></textarea>
+            </section>
+        </div>
 
         <footer>
             <p>Made by Maxim Belousov</p>
         </footer>
     </main>
 
-    <!-- Link to external script -->
     <script src="script.js"></script>
 </body>
 </html>

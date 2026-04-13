@@ -1,52 +1,56 @@
 /**
  * GREEN-API Test Task - Client-Side Logic
- * Note: Tokens are handled client-side per test requirements.
- * In production, always proxy API calls through a secure backend.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. DOM References
+  // DOM References - Updated for new layout
   const idInstanceInput = document.getElementById('idInstance');
   const apiTokenInput = document.getElementById('apiTokenInstance');
-
+  
   const btnGetSettings = document.getElementById('btn-getSettings');
   const btnGetState = document.getElementById('btn-getStateInstance');
   const btnSendMessage = document.getElementById('btn-sendMessage');
   const btnSendFile = document.getElementById('btn-sendFileByUrl');
-
-  const resGetSettings = document.getElementById('res-getSettings');
-  const resGetState = document.getElementById('res-getStateInstance');
-  const resSendMessage = document.getElementById('res-sendMessage');
-  const resSendFile = document.getElementById('res-sendFileByUrl');
-
+  
   const sendChatId = document.getElementById('send-chatId');
   const sendMessageText = document.getElementById('send-message');
-
   const fileChatId = document.getElementById('file-chatId');
   const fileUrl = document.getElementById('file-url');
-  const fileName = document.getElementById('file-name');
-  const fileCaption = document.getElementById('file-caption');
+  
+  // Single response textarea
+  const responseOutput = document.getElementById('response-output');
 
-  // 2. Helper Functions
+  // Helper: Validate credentials
   const validateCredentials = () => {
     if (!idInstanceInput.value.trim() || !apiTokenInput.value.trim()) {
-      alert('⚠️ Please enter both idInstance and apiTokenInstance.');
+      alert('⚠️ Please enter both idInstance and ApiTokenInstance');
       return false;
     }
     return true;
   };
 
+  // Helper: Build API URL
   const buildUrl = (method) => {
     return `https://api.green-api.com/waInstance${idInstanceInput.value.trim()}/${method}/${apiTokenInput.value.trim()}`;
   };
 
+  // Helper: Format JSON
   const formatJSON = (data) => JSON.stringify(data, null, 2);
 
-  const displayError = (element, error) => {
-    element.value = `❌ Error:\n${error.message || 'Unknown error occurred'}\n\n💡 Check browser console (F12) for details.`;
-    console.error('API Error:', error);
+  // Helper: Display response in the output area
+  const displayResponse = (method, data) => {
+    const output = `=== ${method} ===\n${formatJSON(data)}\n\n`;
+    responseOutput.value += output;
   };
 
+  // Helper: Display error
+  const displayError = (method, error) => {
+    const output = `❌ ${method} Error:\n${error.message || 'Unknown error'}\n\n`;
+    responseOutput.value += output;
+    console.error(`${method} error:`, error);
+  };
+
+  // Helper: Set loading state
   const setLoading = (btn, isLoading) => {
     if (isLoading) {
       btn.dataset.originalText = btn.textContent;
@@ -54,117 +58,150 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.textContent = '⏳ Loading...';
     } else {
       btn.disabled = false;
-      btn.textContent = btn.dataset.originalText || 'Call';
+      btn.textContent = btn.dataset.originalText || btn.textContent.replace('⏳ Loading...', '');
     }
   };
 
-  // 3. Event Handlers
+  // Helper: Fetch with timeout
+  const fetchWithTimeout = async (url, options, timeout = 15000) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  };
 
-  // getSettings (GET)
+  // Event: getSettings
   btnGetSettings.addEventListener('click', async () => {
     if (!validateCredentials()) return;
+    
     setLoading(btnGetSettings, true);
-    resGetSettings.value = '⏳ Fetching settings...';
-
+    
     try {
-      const response = await fetch(buildUrl('getSettings'), { method: 'GET' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const url = buildUrl('getSettings');
+      const response = await fetchWithTimeout(url, { method: 'GET' });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
-      resGetSettings.value = formatJSON(data);
-    } catch (err) {
-      displayError(resGetSettings, err);
+      displayResponse('getSettings', data);
+    } catch (error) {
+      displayError('getSettings', error);
     } finally {
       setLoading(btnGetSettings, false);
     }
   });
 
-  // getStateInstance (GET)
+  // Event: getStateInstance
   btnGetState.addEventListener('click', async () => {
     if (!validateCredentials()) return;
+    
     setLoading(btnGetState, true);
-    resGetState.value = '⏳ Fetching state...';
-
+    
     try {
-      const response = await fetch(buildUrl('getStateInstance'), { method: 'GET' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const url = buildUrl('getStateInstance');
+      const response = await fetchWithTimeout(url, { method: 'GET' });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
-      resGetState.value = formatJSON(data);
-    } catch (err) {
-      displayError(resGetState, err);
+      displayResponse('getStateInstance', data);
+    } catch (error) {
+      displayError('getStateInstance', error);
     } finally {
       setLoading(btnGetState, false);
     }
   });
 
-  // sendMessage (POST)
+  // Event: sendMessage
   btnSendMessage.addEventListener('click', async () => {
     if (!validateCredentials()) return;
-    if (!sendChatId.value.trim() || !sendMessageText.value.trim()) {
-      alert('⚠️ Please enter both Chat ID and Message text.');
+    
+    const chatId = sendChatId.value.trim();
+    const message = sendMessageText.value.trim();
+    
+    if (!chatId || !message) {
+      alert('⚠️ Please enter both Chat ID and Message');
       return;
     }
-
+    
     setLoading(btnSendMessage, true);
-    resSendMessage.value = '⏳ Sending message...';
-
-    const payload = {
-      chatId: sendChatId.value.trim(),
-      message: sendMessageText.value.trim()
-    };
-
+    
     try {
-      const response = await fetch(buildUrl('sendMessage'), {
+      const url = buildUrl('sendMessage');
+      const payload = { chatId, message };
+      
+      const response = await fetchWithTimeout(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       
       if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errText || response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
       }
+      
       const data = await response.json();
-      resSendMessage.value = formatJSON(data);
-    } catch (err) {
-      displayError(resSendMessage, err);
+      displayResponse('sendMessage', data);
+    } catch (error) {
+      displayError('sendMessage', error);
     } finally {
       setLoading(btnSendMessage, false);
     }
   });
 
-  // sendFileByUrl (POST)
+  // Event: sendFileByUrl
   btnSendFile.addEventListener('click', async () => {
     if (!validateCredentials()) return;
-    if (!fileChatId.value.trim() || !fileUrl.value.trim() || !fileName.value.trim()) {
-      alert('⚠️ Please enter Chat ID, File URL, and Filename.');
+    
+    const chatId = fileChatId.value.trim();
+    const urlFile = fileUrl.value.trim();
+    
+    if (!chatId || !urlFile) {
+      alert('⚠️ Please enter Chat ID and File URL');
       return;
     }
-
+    
     setLoading(btnSendFile, true);
-    resSendFile.value = '⏳ Sending file...';
-
-    const payload = {
-      chatId: fileChatId.value.trim(),
-      urlFile: fileUrl.value.trim(),
-      fileName: fileName.value.trim(),
-      caption: fileCaption.value.trim() || ''
-    };
-
+    
     try {
-      const response = await fetch(buildUrl('sendFileByUrl'), {
+      const url = buildUrl('sendFileByUrl');
+      const payload = {
+        chatId,
+        urlFile,
+        fileName: 'file.' + urlFile.split('.').pop() || 'png',
+        caption: ''
+      };
+      
+      const response = await fetchWithTimeout(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       
       if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errText || response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
       }
+      
       const data = await response.json();
-      resSendFile.value = formatJSON(data);
-    } catch (err) {
-      displayError(resSendFile, err);
+      displayResponse('sendFileByUrl', data);
+    } catch (error) {
+      displayError('sendFileByUrl', error);
     } finally {
       setLoading(btnSendFile, false);
     }
